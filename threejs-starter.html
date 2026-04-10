@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Three.js Starter — Spinning Cube</title>
+  <style>
+    /* Fill the whole window, no scrollbars, dark background so the cube pops */
+    body { margin: 0; overflow: hidden; background: #141314; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+
+  <!--
+    IMPORT MAP: tells the browser where to find "three" when we import it below.
+    This is what lets us skip npm/build tools entirely — it's all just a browser
+    loading files from a CDN.
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    // ---- 1. SCENE ----------------------------------------------------
+    // The scene is the "world" — a container for everything we want to draw.
+    const scene = new THREE.Scene();
+
+    // ---- 2. CAMERA ---------------------------------------------------
+    // PerspectiveCamera(fov, aspectRatio, near, far)
+    //   fov  = field of view in degrees (how wide the lens is)
+    //   near/far = clipping planes; stuff outside this range isn't drawn
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.z = 3; // pull the camera back so we can see the cube
+
+    // ---- 3. RENDERER -------------------------------------------------
+    // The renderer is what actually draws pixels. WebGL = uses your GPU.
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio); // sharp on retina
+    document.body.appendChild(renderer.domElement);
+
+    // ---- 4. THE CUBE -------------------------------------------------
+    // A Mesh = Geometry (shape) + Material (how it looks)
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshStandardMaterial({ color: 0xFB460D }); // your brand orange
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    // ---- 5. LIGHTS ---------------------------------------------------
+    // MeshStandardMaterial needs light to be visible (unlike MeshBasicMaterial).
+    // Ambient = soft fill light from everywhere. Directional = like the sun.
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+    sun.position.set(3, 5, 2);
+    scene.add(sun);
+
+    // ---- 6. ANIMATION LOOP -------------------------------------------
+    // This function runs ~60 times a second. Each frame we nudge the
+    // cube's rotation a bit, then tell the renderer to redraw.
+    function animate() {
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+    renderer.setAnimationLoop(animate);
+
+    // ---- 7. HANDLE WINDOW RESIZE -------------------------------------
+    // Keep things looking right if you resize the browser window.
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

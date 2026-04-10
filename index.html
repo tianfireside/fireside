@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<!--
+  DOCTYPE tells the browser "this is a modern HTML file".
+  Without it, browsers may render the page incorrectly.
+-->
+
+<html lang="en">
+<!--
+  <html> is the root container — everything on the page lives inside it.
+  lang="en" tells search engines and screen readers the page is in English.
+-->
+
+<head>
+<!--
+  <head> is invisible to the visitor. It holds instructions for the browser:
+  what the page is called, which fonts to load, and all the styling rules.
+-->
+
+  <meta charset="UTF-8" />
+  <!-- Tells the browser to support all characters (accents, symbols, etc.) -->
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!--
+    Makes the page scale correctly on phones and tablets.
+    Without this, mobile browsers would zoom out and show a tiny desktop view.
+  -->
+
+  <title>Fireside Law</title>
+  <!-- The text that appears in the browser tab. -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!--
+    "preconnect" tells the browser to start connecting to Google Fonts early,
+    so the fonts load faster when they're actually requested below.
+  -->
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <!--
+    Loads two fonts from Google Fonts:
+      - Playfair Display (weight 900 = heaviest/boldest) — used for the big title
+      - Inter (weights 400 = regular, 500 = medium) — used for body text and nav
+    These are free fonts hosted by Google; no download needed.
+  -->
+
+  <style>
+  <!--
+    Everything inside <style> is CSS — the language that controls
+    how things look: colors, sizes, spacing, layout, fonts.
+
+    CSS works by selecting an element (e.g. "nav", ".hero-title")
+    and then listing rules for it (e.g. font-size, color).
+
+    A note on units — this page uses "vw" (viewport width) everywhere:
+      - 1vw = 1% of the browser window's width
+      - So all sizes scale proportionally as the window grows or shrinks
+      - Comments show what each value equals on a 1440px wide screen (a common laptop)
+      - Formula: px ÷ 1440 × 100 = vw  (e.g. 13px → 13/1440×100 = 0.9vw)
+  -->
+
+    /* ─── GLOBAL RESET ────────────────────────────────────────────────────────
+       Browsers apply their own default spacing to elements (margins, padding).
+       This "reset" removes all of that so we start with a clean, predictable slate.
+       The * selector means "apply this to every single element on the page".
+    ──────────────────────────────────────────────────────────────────────── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      /* box-sizing: border-box means padding and borders are included
+         inside an element's stated size, not added on top of it.
+         This makes sizing much more intuitive and predictable. */
+      margin: 0;
+      padding: 0;
+      /* Remove all default browser spacing. */
+    }
+
+    /* ─── PAGE BODY ───────────────────────────────────────────────────────────
+       The body is the visible canvas of the page.
+    ──────────────────────────────────────────────────────────────────────── */
+    body {
+      background-color: #f2ede8;
+      /* The warm cream/beige background. Colors can be written as hex codes
+         like #f2ede8 — think of them as a 6-digit color ID. */
+
+      font-family: 'Inter', sans-serif;
+      /* Sets Inter as the default font for the whole page.
+         "sans-serif" is a fallback — if Inter fails to load,
+         the browser uses its own clean sans-serif font instead. */
+
+      min-height: 100vh;
+      /* Makes the page at least as tall as the browser window (100vh = 100% of viewport height).
+         This ensures the background color covers the full screen even on short pages. */
+    }
+
+    /* ─── NAVIGATION BAR ──────────────────────────────────────────────────────
+       The thin bar at the top with "FIRESIDE LAW" on the left
+       and the red CONTACT button on the right.
+    ──────────────────────────────────────────────────────────────────────── */
+    nav {
+      display: flex;
+      /* "flex" turns the nav into a flexible row layout.
+         Its children (logo + button) are placed side by side automatically. */
+
+      justify-content: space-between;
+      /* Pushes the logo to the far left and the button to the far right,
+         with all empty space in between. */
+
+      align-items: center;
+      /* Vertically centers the logo and button relative to each other. */
+
+      padding: 1.25vw 2.22vw;
+      /* Adds breathing room inside the nav bar.
+         First value = top & bottom (1.25vw ≈ 18px @ 1440px).
+         Second value = left & right (2.22vw ≈ 32px @ 1440px).
+         Using vw here keeps the nav flush to the edges at any screen size. */
+    }
+
+    /* ─── NAV LOGO TEXT ("FIRESIDE LAW") ─────────────────────────────────── */
+    .nav-logo {
+      /* The dot before a name (e.g. ".nav-logo") means this rule applies to
+         any element with class="nav-logo" in the HTML. */
+
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      /* 700 = bold. Font weights range from 100 (thin) to 900 (black/heaviest). */
+
+      font-size: 0.9vw;
+      /* ≈ 13px @ 1440px. Small and understated — a subtle wordmark. */
+
+      letter-spacing: 0.08em;
+      /* Adds a small gap between each letter. "em" is relative to the font size,
+         so it scales automatically. Gives the logo a refined, spaced-out feel. */
+
+      color: #111;
+      /* Near-black. Pure black (#000) can feel harsh; #111 is softer. */
+
+      text-transform: uppercase;
+      /* Automatically capitalizes all letters, so the HTML can stay lowercase
+         while the visual always appears in caps. */
+    }
+
+    /* ─── CONTACT BUTTON ──────────────────────────────────────────────────── */
+    .nav-contact {
+      background-color: #c0392b;
+      /* The red background. This hex code is a specific shade of crimson. */
+
+      color: #fff;
+      /* White text. #fff is shorthand for #ffffff (pure white). */
+
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      /* 600 = semi-bold. Slightly lighter than bold (700) but still strong. */
+
+      font-size: 0.76vw;
+      /* ≈ 11px @ 1440px. Small and tight — typical for nav buttons. */
+
+      letter-spacing: 0.12em;
+      /* More spaced out than the logo, which is a common style for buttons. */
+
+      text-transform: uppercase;
+
+      border: none;
+      /* Removes the default border that browsers add to buttons. */
+
+      padding: 0.625vw 1.39vw;
+      /* Top/bottom: 0.625vw ≈ 9px. Left/right: 1.39vw ≈ 20px @ 1440px.
+         This creates the rectangular pill shape around the word "CONTACT". */
+
+      cursor: pointer;
+      /* Changes the mouse cursor to a hand when hovering, signaling it's clickable. */
+
+      text-decoration: none;
+      /* Removes the underline that browsers add to links by default. */
+
+      display: inline-block;
+      /* Allows padding to work correctly on a link element (<a> tag). */
+
+      transition: background-color 0.66s ease;
+      /* Smoothly animates the hover color change. Duration (0.35s) and easing
+         (ease) control how gradual the shift feels — longer = slower. */
+    }
+
+    /* ─── CONTACT BUTTON HOVER STATE ─────────────────────────────────────── */
+    .nav-contact:hover {
+      background-color: #080201;
+      /* Darkens when the mouse hovers over the button.
+         ":hover" is a "pseudo-class" — it applies only during that moment. */
+    }
+
+    /* ─── HERO SECTION ────────────────────────────────────────────────────────
+       The main content area. We split the title into two rows:
+         Row 1: "FIRESIDE" alone, spanning ~75% of the screen width
+         Row 2: ".LAW" on the left, description text on the right
+       This matches the design where the description sits beside ".LAW",
+       not beside the whole title block.
+    ──────────────────────────────────────────────────────────────────────── */
+    .hero {
+      padding: 4.17vw 8.22vw 0;
+      /* Top: 4.17vw ≈ 60px. Left/right: 4.22vw ≈ 32px. Bottom: 0. */
+    }
+
+    /* ─── SHARED TITLE FONT STYLES ────────────────────────────────────────── */
+    .hero-line1,
+    .hero-line2-row {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 13.5vw;
+      /* At 1440px wide, 13.5vw ≈ 194px. Calibrated so "FIRESIDE"
+         spans roughly 75% of the viewport at any screen size. */
+      line-height: 0.92;
+      /* Slightly tighter than normal, pulling the two lines close together. */
+      color: #111;
+    }
+
+    /* ─── ROW 1: "FIRESIDE" ───────────────────────────────────────────────── */
+    .hero-line1 {
+      display: block;
+      /* Occupies its own full row — nothing sits beside it. */
+    }
+
+    /* ─── ROW 2: ".LAW" + DESCRIPTION SIDE BY SIDE ───────────────────────── */
+    .hero-line2-row {
+      display: flex;
+      /* Places ".LAW" and the description text in a horizontal row. */
+      align-items: center;
+      /* Vertically centers the description text with the ".LAW" letters. */
+      gap: 2.78vw;
+      /* ≈ 40px @ 1440px. Space between ".LAW" and the description. */
+    }
+
+    /* ─── RED DOT (the "." in ".LAW") ───────────────────────────────────── */
+    .dot {
+      color: #c0392b;
+      /* Colors just that one character red, leaving "LAW" black. */
+    }
+
+    /* ─── DESCRIPTION TEXT ────────────────────────────────────────────────── */
+    .hero-description {
+      font-family: 'Inter', sans-serif;
+      /* Switch back to Inter for the body text — Playfair is only for the title. */
+      font-size: 0.97vw;
+      /* ≈ 14px @ 1440px. */
+      font-weight: 400;
+      line-height: 1.6;
+      color: #111;
+      max-width: 15.28vw;
+      /* ≈ 220px @ 1440px. Keeps the text column narrow and readable. */
+    }
+
+    /* ─── EMAIL LINK INSIDE DESCRIPTION ──────────────────────────────────── */
+    .hero-description a {
+      /* Targets any link (<a>) inside the description block. */
+      color: #111;
+      /* Keeps the email link the same color as surrounding text — subtle. */
+      text-decoration: none;
+      /* Removes the default blue underline. */
+    }
+
+    .hero-description a:hover {
+      text-decoration: underline;
+      text-decoration-color: #c0392b;
+      /* Same crimson as .nav-contact background. */
+    }
+
+  </style>
+</head>
+
+<body>
+<!--
+  <body> is everything the visitor actually sees and interacts with.
+  HTML is made of "elements" — building blocks like <nav>, <div>, <p>, <a>.
+  Elements can be nested inside each other to create structure.
+-->
+
+  <!-- ── NAVIGATION BAR ─────────────────────────────────────────────────── -->
+  <nav>
+  <!-- <nav> is a semantic element — it tells the browser (and screen readers)
+       "this section contains navigation links". -->
+
+    <span class="nav-logo">Fireside Law</span>
+    <!--
+      <span> is a generic inline container with no special meaning on its own.
+      class="nav-logo" connects this element to the .nav-logo CSS rules above.
+    -->
+
+    <a href="mailto:tian@fireside.law" class="nav-contact">Contact</a>
+    <!--
+      <a> is a link element. href="mailto:..." means clicking it opens
+      the visitor's email app with tian@fireside.law pre-filled as the recipient.
+      class="nav-contact" connects it to the red button styles above.
+    -->
+  </nav>
+
+  <!-- ── HERO / MAIN CONTENT ────────────────────────────────────────────── -->
+  <main class="hero">
+  <!--
+    <main> is a semantic element marking the primary content of the page.
+    Inside it we have two rows:
+      - .hero-line1 → "FIRESIDE" alone on its own line
+      - .hero-line2-row → ".LAW" and the description side by side
+  -->
+
+    <!-- ROW 1: "FIRESIDE" on its own full-width line -->
+    <div class="hero-line1">FIRESIDE</div>
+
+    <!-- ROW 2: ".LAW" on the left, description on the right -->
+    <div class="hero-line2-row">
+
+      <span>
+        <span class="dot">.</span>LAW
+        <!--
+          The period is its own <span class="dot"> so CSS can color
+          just that character red while "LAW" stays black.
+        -->
+      </span>
+
+      <div class="hero-description">
+        <p>Fireside Law is the personal website of Tian Luo, a Vancouver, B.C. based lawyer.</p>
+        <br>
+        <p>For inquiries, email: <a href="mailto:tian@fireside.law">tian@fireside.law</a></p>
+        <!--
+          href="mailto:..." means clicking the email address opens
+          the visitor's mail app with the address pre-filled.
+        -->
+      </div>
+
+    </div>
+
+  </main>
+
+</body>
+</html>
