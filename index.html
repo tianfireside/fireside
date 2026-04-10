@@ -89,6 +89,11 @@
       min-height: 100vh;
       /* Makes the page at least as tall as the browser window (100vh = 100% of viewport height).
          This ensures the background color covers the full screen even on short pages. */
+
+      display: flex;
+      flex-direction: column;
+      /* Turns the body into a vertical flex container so the nav sits at the top
+         and the hero section can grow to fill all remaining space below it. */
     }
 
     /* ─── NAVIGATION BAR ──────────────────────────────────────────────────────
@@ -108,10 +113,8 @@
       /* Vertically centers the logo and button relative to each other. */
 
       padding: 1.25vw 2.22vw;
-      /* Adds breathing room inside the nav bar.
-         First value = top & bottom (1.25vw ≈ 18px @ 1440px).
-         Second value = left & right (2.22vw ≈ 32px @ 1440px).
-         Using vw here keeps the nav flush to the edges at any screen size. */
+      /* vw = the smaller of viewport width or height, so nav spacing
+         scales with whichever dimension is the constraint. */
     }
 
     /* ─── NAV LOGO TEXT ("FIRESIDE LAW") ─────────────────────────────────── */
@@ -124,7 +127,7 @@
       /* 700 = bold. Font weights range from 100 (thin) to 900 (black/heaviest). */
 
       font-size: 0.9vw;
-      /* ≈ 13px @ 1440px. Small and understated — a subtle wordmark. */
+      /* Scales with the smaller viewport dimension. */
 
       letter-spacing: 0.08em;
       /* Adds a small gap between each letter. "em" is relative to the font size,
@@ -151,7 +154,6 @@
       /* 600 = semi-bold. Slightly lighter than bold (700) but still strong. */
 
       font-size: 0.76vw;
-      /* ≈ 11px @ 1440px. Small and tight — typical for nav buttons. */
 
       letter-spacing: 0.12em;
       /* More spaced out than the logo, which is a common style for buttons. */
@@ -162,8 +164,6 @@
       /* Removes the default border that browsers add to buttons. */
 
       padding: 0.625vw 1.39vw;
-      /* Top/bottom: 0.625vw ≈ 9px. Left/right: 1.39vw ≈ 20px @ 1440px.
-         This creates the rectangular pill shape around the word "CONTACT". */
 
       cursor: pointer;
       /* Changes the mouse cursor to a hand when hovering, signaling it's clickable. */
@@ -194,8 +194,20 @@
        not beside the whole title block.
     ──────────────────────────────────────────────────────────────────────── */
     .hero {
-      padding: 4.17vw 8.22vw 0;
-      /* Top: 4.17vw ≈ 60px. Left/right: 8.22vw ≈ 118px. Bottom: 0. */
+      padding: 0 8.22vw;
+      /* Left/right padding in vw so margins scale with the smaller dimension. */
+
+      flex: 1;
+      /* Tells the hero to grow and fill all vertical space not used by the nav.
+         Combined with the body being a flex column, this makes the hero
+         occupy the full remaining height of the screen. */
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* Vertically centers the title and description within that full-height space,
+         so the content always sits in the middle of the screen regardless of
+         how narrow or wide the viewport is. */
     }
 
     /* ─── SHARED TITLE FONT STYLES ────────────────────────────────────────── */
@@ -204,8 +216,8 @@
       font-family: 'Playfair Display', serif;
       font-weight: 900;
       font-size: 13.5vw;
-      /* At 1440px wide, 13.5vw ≈ 194px. Calibrated so "FIRESIDE"
-         spans roughly 75% of the viewport at any screen size. */
+      /* vw keeps the title proportional to whichever screen dimension is smaller,
+         so it never overwhelms or shrinks into nothing on odd aspect ratios. */
       line-height: 0.92;
       /* Slightly tighter than normal, pulling the two lines close together. */
       color: #111;
@@ -231,7 +243,6 @@
          so we can then use flex inside it to pin the first line to the top
          and the last line to the bottom — matching LAW's full height. */
       gap: 2.78vw;
-      /* ≈ 40px @ 1440px. Space between ".LAW" and the description. */
     }
 
     /* ─── ".LAW" SPAN ─────────────────────────────────────────────────────── */
@@ -281,7 +292,6 @@
       font-family: 'Inter', sans-serif;
       /* Switch back to Inter for the body text — Playfair is only for the title. */
       font-size: 0.97vw;
-      /* ≈ 14px @ 1440px. */
       font-weight: 400;
       line-height: 1.6;
       color: #111;
@@ -289,9 +299,7 @@
 
       display: flex;
       flex-direction: column;
-      /* Stack the three lines vertically inside the description box. */
       justify-content: flex-start;
-      /* Lines stack from the top — line 3 is pushed down manually with margin-top. */
       padding-top: 2.1vw;
       /* Small optical offset to align Inter text top with LAW's cap-height. */
     }
