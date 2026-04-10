@@ -195,12 +195,12 @@
     ──────────────────────────────────────────────────────────────────────── */
     .hero {
       padding: 4.17vw 8.22vw 0;
-      /* Top: 4.17vw ≈ 60px. Left/right: 4.22vw ≈ 32px. Bottom: 0. */
+      /* Top: 4.17vw ≈ 60px. Left/right: 8.22vw ≈ 118px. Bottom: 0. */
     }
 
     /* ─── SHARED TITLE FONT STYLES ────────────────────────────────────────── */
     .hero-line1,
-    .hero-line2-row {
+    .hero-law {
       font-family: 'Playfair Display', serif;
       font-weight: 900;
       font-size: 13.5vw;
@@ -209,28 +209,71 @@
       line-height: 0.92;
       /* Slightly tighter than normal, pulling the two lines close together. */
       color: #111;
+      transition: color 1.5s ease;
+      /* Smoothly animates the color over 1.5 seconds on hover in and out. */
     }
 
     /* ─── ROW 1: "FIRESIDE" ───────────────────────────────────────────────── */
     .hero-line1 {
       display: block;
-      /* Occupies its own full row — nothing sits beside it. */
+      width: fit-content;
+      /* fit-content shrinks the hover zone to end at the last letter of "FIRESIDE"
+         rather than stretching invisibly to the screen edge.
+         This is crucial — a full-width block would trigger hover on empty whitespace. */
     }
 
     /* ─── ROW 2: ".LAW" + DESCRIPTION SIDE BY SIDE ───────────────────────── */
     .hero-line2-row {
       display: flex;
       /* Places ".LAW" and the description text in a horizontal row. */
-      align-items: center;
-      /* Vertically centers the description text with the ".LAW" letters. */
+      align-items: stretch;
+      /* stretch makes .hero-description grow to the same height as .hero-law,
+         so we can then use flex inside it to pin the first line to the top
+         and the last line to the bottom — matching LAW's full height. */
       gap: 2.78vw;
       /* ≈ 40px @ 1440px. Space between ".LAW" and the description. */
+    }
+
+    /* ─── ".LAW" SPAN ─────────────────────────────────────────────────────── */
+    .hero-law {
+      /* .hero-law is a <span> — an inline element — so its hover zone
+         naturally hugs just the letters, with no extra whitespace around it. */
+      white-space: nowrap;
+      /* Prevents ".LAW" from wrapping onto a new line at narrow viewports. */
     }
 
     /* ─── RED DOT (the "." in ".LAW") ───────────────────────────────────── */
     .dot {
       color: #c0392b;
       /* Colors just that one character red, leaving "LAW" black. */
+      transition: color 1.5s ease;
+      /* Same 1.5s transition so the dot animates in sync with the title text. */
+    }
+
+    /* ─── HOVER COLOR SWAP (using :has) ──────────────────────────────────────
+       CSS :has() lets a parent react to what's happening inside it.
+       Here, .hero "sees" which child is being hovered, and changes colors
+       on BOTH title elements — even though they're separate in the HTML.
+
+       This replaces the old group-wrapper approach. The key advantage:
+       each word (.hero-line1 and .hero-law) has its own tight hover zone.
+       Hovering whitespace between or around the words does nothing.
+
+       Two trigger conditions — hovering FIRESIDE OR hovering .LAW —
+       produce the exact same color swap result.
+    ──────────────────────────────────────────────────────────────────────── */
+    .hero:has(.hero-line1:hover) .hero-line1,
+    .hero:has(.hero-line1:hover) .hero-law,
+    .hero:has(.hero-law:hover) .hero-line1,
+    .hero:has(.hero-law:hover) .hero-law {
+      color: #c0392b;
+      /* Title text transitions from black → crimson red. */
+    }
+
+    .hero:has(.hero-line1:hover) .dot,
+    .hero:has(.hero-law:hover) .dot {
+      color: #111;
+      /* Dot transitions from crimson red → black — the swap. */
     }
 
     /* ─── DESCRIPTION TEXT ────────────────────────────────────────────────── */
@@ -242,8 +285,20 @@
       font-weight: 400;
       line-height: 1.6;
       color: #111;
-      max-width: 15.28vw;
-      /* ≈ 220px @ 1440px. Keeps the text column narrow and readable. */
+      max-width: 25vw;
+
+      display: flex;
+      flex-direction: column;
+      /* Stack the three lines vertically inside the description box. */
+      justify-content: flex-start;
+      /* Lines stack from the top — line 3 is pushed down manually with margin-top. */
+      padding-top: 2.1vw;
+      /* Small optical offset to align Inter text top with LAW's cap-height. */
+    }
+
+    .hero-description-intro {
+      line-height: 1.2;
+      margin: 0;
     }
 
     /* ─── EMAIL LINK INSIDE DESCRIPTION ──────────────────────────────────── */
@@ -295,17 +350,24 @@
   <!--
     <main> is a semantic element marking the primary content of the page.
     Inside it we have two rows:
-      - .hero-line1 → "FIRESIDE" alone on its own line
-      - .hero-line2-row → ".LAW" and the description side by side
+      - .hero-line1 → "FIRESIDE" alone, width: fit-content so hover zone is tight
+      - .hero-line2-row → ".LAW" (a span) and the description side by side
+
+    No wrapper group needed — CSS :has() lets .hero detect which child
+    is hovered and swap colors on both title elements simultaneously.
   -->
 
-    <!-- ROW 1: "FIRESIDE" on its own full-width line -->
+    <!-- ROW 1: "FIRESIDE" — width: fit-content keeps its hover zone letter-tight -->
     <div class="hero-line1">FIRESIDE</div>
 
     <!-- ROW 2: ".LAW" on the left, description on the right -->
     <div class="hero-line2-row">
 
-      <span>
+      <span class="hero-law">
+        <!--
+          .hero-law is a <span> (inline element), so its hover zone
+          naturally hugs only the letters — no invisible whitespace around it.
+        -->
         <span class="dot">.</span>LAW
         <!--
           The period is its own <span class="dot"> so CSS can color
@@ -314,9 +376,16 @@
       </span>
 
       <div class="hero-description">
-        <p>Fireside Law is the personal website of Tian Luo, a Vancouver, B.C. based lawyer.</p>
-        <br>
-        <p>For inquiries, email: <a href="mailto:tian@fireside.law">tian@fireside.law</a></p>
+        <!--
+          .hero-description is a sibling of .hero-law, not inside it.
+          Hovering the description text does NOT trigger the color swap.
+        -->
+        <p class="hero-description-intro">
+          Fireside Law is the personal website of<br />
+          Tian Luo, a Vancouver, B.C. based lawyer.
+        </p>
+        <p style="margin-top: 6%">For inquiries, email: <a href="mailto:tian@fireside.law">tian@fireside.law</a></p>
+        <!-- margin-top pushes line 3 down to roughly where line 2 sat with space-between -->
         <!--
           href="mailto:..." means clicking the email address opens
           the visitor's mail app with the address pre-filled.
