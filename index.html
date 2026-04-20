@@ -324,6 +324,50 @@
       /* Same crimson as .nav-contact background. */
     }
 
+    /* ─── MOBILE ──────────────────────────────────────────────────────────────
+       All vw-based sizes become unreadably small on phones.
+       This block overrides only what breaks — desktop rules are untouched.
+    ──────────────────────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+
+      nav {
+        padding: 16px 20px;
+      }
+
+      .nav-logo {
+        font-size: 12px;
+      }
+
+      .nav-contact {
+        font-size: 10px;
+        padding: 10px 16px;
+      }
+
+      .hero {
+        padding: 26vw 6vw 0;
+        justify-content: flex-start;
+      }
+
+      .hero-line1,
+      .hero-law {
+        font-size: 14vw;
+      }
+
+      .hero-line2-row {
+        flex-direction: column;
+        gap: 4vw;
+      }
+
+      .hero-description {
+        font-size: 14px;
+        max-width: 100%;
+        padding-top: 0;
+        margin-top: 22vh;
+        padding-bottom: 12vw;
+      }
+
+    }
+
   </style>
 </head>
 
