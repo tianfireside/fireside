@@ -36,7 +36,11 @@ module.exports = async function handler(req, res) {
 
   const events = await fetchEvents(accessToken, calendarId);
   if (events.error) {
-    return res.status(events.status || 502).json({ error: events.error });
+    return res.status(events.status || 502).json({
+      error:          events.error,
+      upstreamStatus: events.upstreamStatus,
+      upstreamBody:   events.upstreamBody
+    });
   }
 
   // Defense in depth — service account already shouldn't see these, but null them anyway.
@@ -81,7 +85,13 @@ async function fetchEvents(accessToken, calendarId) {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     if (!upstream.ok) {
-      return { error: 'upstream', status: upstream.status === 401 || upstream.status === 403 ? upstream.status : 502 };
+      const detail = await upstream.text().catch(() => '');
+      return {
+        error:          'upstream',
+        status:         upstream.status === 401 || upstream.status === 403 ? upstream.status : 502,
+        upstreamStatus: upstream.status,
+        upstreamBody:   detail.slice(0, 500)
+      };
     }
     const data = await upstream.json();
     const items = (data.items || []).map((e) => ({
