@@ -531,7 +531,10 @@
         if (isPast)  classes.push('is-past');
         if (isToday) classes.push('is-today');
 
-        const timeLabel = ev.allDay ? 'All day' : fmtTime(start);
+        const end = ev.end ? new Date(ev.end) : null;
+        const timeLabel = ev.allDay
+          ? 'All day'
+          : end ? `${fmtTime(start)}\u2013${fmtTime(end)}` : fmtTime(start);
 
         const titleHTML = (ev.title === null || ev.title === undefined)
           ? '<div class="event-title is-redacted">\u2022\u2022\u2022</div>'
