@@ -232,10 +232,12 @@
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.4vw;
       font-family: inherit;
       transition: background 0.15s ease;
       position: relative;
+      overflow: hidden;
     }
 
     .month-grid-day:hover {
@@ -250,49 +252,88 @@
       color: #111;
     }
 
-    .month-grid-day-strip {
-      position: relative;
+    .month-grid-day-events {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25vw;
       width: 100%;
-      height: 0.45vw;
-      min-height: 4px;
-      background: #eae6e1;
-      border-radius: 2px;
-      margin-top: 0.4vw;
     }
 
-    .month-grid-day-block {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      background: #c0392b;
-      border-radius: 2px;
+    .month-grid-day-event {
+      display: flex;
+      align-items: center;
+      gap: 0.4vw;
+    }
+
+    .month-grid-day-bar {
+      display: inline-block;
+      width: 0.18vw;
       min-width: 2px;
+      height: 0.85vw;
+      min-height: 8px;
+      background: #c0392b;
+      border-radius: 1px;
+      flex-shrink: 0;
     }
 
-    .month-grid-day-block.is-allday {
-      left: 0;
-      width: 100%;
-      background: rgba(192, 57, 43, 0.45);
+    .month-grid-day-bar.is-allday {
+      width: 0.6vw;
+      min-width: 6px;
+      height: 0.18vw;
+      min-height: 2px;
+    }
+
+    .month-grid-day-time {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.62vw;
+      font-weight: 500;
+      color: #111;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .month-grid-day-more {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.55vw;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8A8580;
+      padding-left: 0.58vw;
+    }
+
+    .month-grid-day-free {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6vw;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #c8c2bc;
     }
 
     .month-grid-day.is-other-month .month-grid-day-num {
       color: #c8c2bc;
     }
-    .month-grid-day.is-other-month .month-grid-day-block {
+    .month-grid-day.is-other-month .month-grid-day-bar {
       background: #d8d2cc;
     }
-    .month-grid-day.is-other-month .month-grid-day-block.is-allday {
-      background: rgba(216, 210, 204, 0.7);
+    .month-grid-day.is-other-month .month-grid-day-time {
+      color: #c8c2bc;
+    }
+    .month-grid-day.is-other-month .month-grid-day-free {
+      color: #e0dad3;
     }
 
     .month-grid-day.is-past .month-grid-day-num {
       color: #a39d96;
     }
-    .month-grid-day.is-past .month-grid-day-block {
+    .month-grid-day.is-past .month-grid-day-bar {
       background: #c0b8b0;
     }
-    .month-grid-day.is-past .month-grid-day-block.is-allday {
-      background: rgba(192, 184, 176, 0.7);
+    .month-grid-day.is-past .month-grid-day-time {
+      color: #a39d96;
     }
 
     .month-grid-day.is-today .month-grid-day-num {
@@ -670,10 +711,6 @@
     }
 
     // ── Month grid ─────────────────────────────────────────────────────────
-    const STRIP_START_HOUR = 6;   // 6am
-    const STRIP_END_HOUR   = 22;  // 10pm
-    const STRIP_HOURS      = STRIP_END_HOUR - STRIP_START_HOUR;
-
     function renderMonthGrid() {
       const section = document.getElementById('month-grid-section');
       const grid    = document.getElementById('month-grid');
@@ -748,33 +785,39 @@
     }
 
     function renderTimeStrip(events) {
-      if (!events || events.length === 0) return '';
-
-      let blocks = '';
-      for (const ev of events) {
-        if (!ev.start) continue;
-
-        if (ev.allDay) {
-          blocks += '<div class="month-grid-day-block is-allday"></div>';
-          continue;
-        }
-
-        const start = new Date(ev.start);
-        const end   = ev.end ? new Date(ev.end) : null;
-        const startHr = start.getHours() + start.getMinutes() / 60;
-        const endHr   = end ? end.getHours() + end.getMinutes() / 60 : startHr + 1;
-
-        // Clip to the visible window (e.g., a 5am event becomes flush against the left edge).
-        const visStart = Math.max(STRIP_START_HOUR, startHr);
-        const visEnd   = Math.min(STRIP_END_HOUR,   endHr);
-        if (visStart >= visEnd) continue;
-
-        const leftPct  = ((visStart - STRIP_START_HOUR) / STRIP_HOURS) * 100;
-        const widthPct = ((visEnd   - visStart)         / STRIP_HOURS) * 100;
-        blocks += `<div class="month-grid-day-block" style="left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%"></div>`;
+      if (!events || events.length === 0) {
+        return '<span class="month-grid-day-free">Free</span>';
       }
 
-      return `<div class="month-grid-day-strip">${blocks}</div>`;
+      // Sort by start time so the earliest events show first.
+      const sorted = events.slice().sort((a, b) => {
+        if (!a.start) return 1;
+        if (!b.start) return -1;
+        return new Date(a.start) - new Date(b.start);
+      });
+
+      const MAX_VISIBLE = 3;
+      const visible = sorted.slice(0, MAX_VISIBLE);
+      const hidden  = sorted.length - visible.length;
+
+      let rows = '';
+      for (const ev of visible) {
+        if (!ev.start) continue;
+        const start = new Date(ev.start);
+        const label = ev.allDay ? 'All day' : fmtTime(start);
+        const barClass = ev.allDay ? 'month-grid-day-bar is-allday' : 'month-grid-day-bar';
+        rows += `
+          <div class="month-grid-day-event">
+            <span class="${barClass}"></span>
+            <span class="month-grid-day-time">${escapeHtml(label)}</span>
+          </div>
+        `;
+      }
+      if (hidden > 0) {
+        rows += `<div class="month-grid-day-more">+${hidden} more</div>`;
+      }
+
+      return `<div class="month-grid-day-events">${rows}</div>`;
     }
 
     function scrollToDate(dateKey) {
