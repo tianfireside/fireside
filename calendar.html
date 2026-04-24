@@ -426,9 +426,11 @@
     const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     const DAY_NAMES   = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
 
-    let clientId = null;
-    let idToken  = sessionStorage.getItem('fs_id_token') || null;
-    let gisReady = false;
+    let clientId    = null;
+    let accessToken = sessionStorage.getItem('fs_access_token') || null;
+    let staffEmail  = sessionStorage.getItem('fs_email') || null;
+    let gisReady    = false;
+    let tokenClient = null;
 
     function startOfDay(d) {
       const x = new Date(d);
@@ -448,15 +450,6 @@
       return String(s).replace(/[&<>"']/g, (c) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       })[c]);
-    }
-
-    function parseJWT(token) {
-      try {
-        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-        return JSON.parse(decodeURIComponent(escape(atob(base64))));
-      } catch (e) {
-        return {};
-      }
     }
 
     // ── Data fetching ───────────────────────────────────────────────────────
@@ -484,13 +477,15 @@
 
       let payload;
       try {
-        if (idToken) {
+        if (accessToken) {
           try {
-            payload = await fetchPrivate(idToken);
+            payload = await fetchPrivate(accessToken);
           } catch (err) {
-            // Token invalid/expired — clear and fall back to public
-            idToken = null;
-            sessionStorage.removeItem('fs_id_token');
+            // Token invalid/expired or no access — clear and fall back to public
+            accessToken = null;
+            staffEmail  = null;
+            sessionStorage.removeItem('fs_access_token');
+            sessionStorage.removeItem('fs_email');
             payload = await fetchPublic();
           }
         } else {
@@ -571,9 +566,8 @@
     // ── Auth UI ────────────────────────────────────────────────────────────
     function renderAuthArea() {
       const area = document.getElementById('auth-area');
-      if (idToken) {
-        const payload = parseJWT(idToken);
-        const email = payload.email || 'Signed in';
+      if (accessToken) {
+        const email = staffEmail || 'Signed in';
         area.innerHTML = `
           <span class="auth-email">${escapeHtml(email)}</span>
           <button class="auth-signout" id="signout-btn">Sign out</button>
@@ -611,37 +605,46 @@
         return;
       }
 
-      // Replace the "Staff sign-in" button with Google's official button.
-      const area = document.getElementById('auth-area');
-      area.innerHTML = '<div class="google-button-host" id="g-button"></div>';
-
-      google.accounts.id.initialize({
+      // OAuth 2.0 token client — gives us an access token with calendar.readonly scope.
+      tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: clientId,
-        callback:  handleSignIn,
-        auto_select: false
+        scope:     'openid email https://www.googleapis.com/auth/calendar.readonly',
+        callback:  handleSignIn
       });
-      google.accounts.id.renderButton(document.getElementById('g-button'), {
-        theme: 'outline',
-        size:  'medium',
-        text:  'signin_with',
-        shape: 'rectangular'
-      });
-      // Optional convenience: also try One Tap.
-      google.accounts.id.prompt();
+      tokenClient.requestAccessToken();
     }
 
-    function handleSignIn(response) {
-      idToken = response.credential;
-      sessionStorage.setItem('fs_id_token', idToken);
+    async function handleSignIn(response) {
+      if (response.error || !response.access_token) {
+        return;
+      }
+      accessToken = response.access_token;
+
+      // Pull the email off Google's userinfo endpoint just for display.
+      try {
+        const userinfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        }).then((r) => r.json());
+        staffEmail = userinfo.email || null;
+      } catch (e) {
+        staffEmail = null;
+      }
+
+      sessionStorage.setItem('fs_access_token', accessToken);
+      if (staffEmail) sessionStorage.setItem('fs_email', staffEmail);
+
       loadCalendar();
     }
 
     function signOut() {
-      idToken = null;
-      sessionStorage.removeItem('fs_id_token');
-      if (window.google && google.accounts && google.accounts.id) {
-        google.accounts.id.disableAutoSelect();
+      // Revoke the token on Google's side so it can't be reused.
+      if (accessToken && window.google && google.accounts && google.accounts.oauth2) {
+        google.accounts.oauth2.revoke(accessToken, () => {});
       }
+      accessToken = null;
+      staffEmail  = null;
+      sessionStorage.removeItem('fs_access_token');
+      sessionStorage.removeItem('fs_email');
       loadCalendar();
     }
 

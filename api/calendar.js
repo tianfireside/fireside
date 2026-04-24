@@ -1,23 +1,46 @@
 // Vercel serverless function — public endpoint.
-// Returns calendar events with sensitive fields (title, description, location)
-// redacted so visitors can see the rhythm but not the content.
-// The full version lives at /api/calendar-private and requires a valid Google ID token.
+// Authenticates as a Google service account that has only "free/busy" access
+// to the calendar. That means Google itself strips out titles, descriptions,
+// and locations before sending data back — so even a bug in this function
+// can't leak names. We additionally null out the title field as defense in depth.
+
+const { GoogleAuth } = require('google-auth-library');
+
+let cachedAuth = null;
+function getAuth() {
+  if (cachedAuth) return cachedAuth;
+  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  cachedAuth = new GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/calendar.readonly']
+  });
+  return cachedAuth;
+}
 
 module.exports = async function handler(req, res) {
-  const apiKey     = process.env.GOOGLE_CALENDAR_API_KEY;
-  const calendarId = process.env.GOOGLE_CALENDAR_ID;
+  const calendarId    = process.env.GOOGLE_CALENDAR_ID;
+  const oauthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
 
-  if (!apiKey || !calendarId) {
+  if (!calendarId || !process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
     return res.status(500).json({ error: 'missing env vars' });
   }
 
-  const events = await fetchEvents(apiKey, calendarId);
+  let accessToken;
+  try {
+    const client = await getAuth().getClient();
+    const tokenResp = await client.getAccessToken();
+    accessToken = tokenResp.token;
+  } catch (err) {
+    return res.status(500).json({ error: 'service account auth failed' });
+  }
+
+  const events = await fetchEvents(accessToken, calendarId);
   if (events.error) {
     return res.status(events.status || 502).json({ error: events.error });
   }
 
-  // Redact: strip title, description, and location.
-  const redacted = events.items.map((e) => ({
+  // Defense in depth — service account already shouldn't see these, but null them anyway.
+  const slim = events.items.map((e) => ({
     id:          e.id,
     title:       null,
     description: '',
@@ -29,14 +52,14 @@ module.exports = async function handler(req, res) {
 
   res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
   res.status(200).json({
-    events:   redacted,
+    events:   slim,
     redacted: true,
-    clientId: process.env.GOOGLE_OAUTH_CLIENT_ID || null
+    clientId: oauthClientId || null
   });
 };
 
-// ── Helpers shared with the private endpoint ───────────────────────────────
-async function fetchEvents(apiKey, calendarId) {
+// ── Shared helper used by the private endpoint too ─────────────────────────
+async function fetchEvents(accessToken, calendarId) {
   const now     = new Date();
   const timeMin = new Date(now);
   timeMin.setDate(timeMin.getDate() - 60);
@@ -46,7 +69,6 @@ async function fetchEvents(apiKey, calendarId) {
   const url =
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?` +
     new URLSearchParams({
-      key:          apiKey,
       timeMin:      timeMin.toISOString(),
       timeMax:      timeMax.toISOString(),
       singleEvents: 'true',
@@ -55,14 +77,16 @@ async function fetchEvents(apiKey, calendarId) {
     }).toString();
 
   try {
-    const upstream = await fetch(url);
+    const upstream = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
     if (!upstream.ok) {
-      return { error: 'upstream', status: 502 };
+      return { error: 'upstream', status: upstream.status === 401 || upstream.status === 403 ? upstream.status : 502 };
     }
     const data = await upstream.json();
     const items = (data.items || []).map((e) => ({
       id:          e.id,
-      title:       e.summary || '(untitled)',
+      title:       e.summary || null,
       description: e.description || '',
       location:    e.location || '',
       start:       (e.start && (e.start.dateTime || e.start.date)) || null,

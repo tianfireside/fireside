@@ -1,0 +1,8 @@
+{
+  "name": "fireside-law",
+  "private": true,
+  "description": "Fireside Law website — vanilla HTML with Vercel serverless functions",
+  "dependencies": {
+    "google-auth-library": "^9.15.0"
+  }
+}
