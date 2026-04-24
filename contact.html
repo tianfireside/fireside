@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — Fireside Law</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f2ede8;
+      color: #111;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── NAV ──────────────────────────────────────────────────────────────── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.11vw 2.78vw;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .nav-logo {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 0.9vw;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f2ede8;
+      text-decoration: none;
+    }
+
+    .nav-contact {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.83vw;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f2ede8;
+      text-decoration: none;
+      border: 1px solid rgba(242, 237, 232, 0.4);
+      padding: 0.69vw 1.39vw;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .nav-contact:hover {
+      background: rgba(242, 237, 232, 0.12);
+    }
+
+    /* ── SPLIT LAYOUT ─────────────────────────────────────────────────────── */
+    .split {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ── LEFT PANEL (dark) ────────────────────────────────────────────────── */
+    .panel-left {
+      flex: 1;
+      background: #2a2421;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 5vw 4vw;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel-left-eyebrow {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72vw;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8A8580;
+      margin-bottom: 1.4vw;
+      position: relative;
+      z-index: 2;
+    }
+
+    .panel-left-headline {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 5vw;
+      line-height: 0.92;
+      color: #f2ede8;
+      position: relative;
+      z-index: 2;
+    }
+
+    .panel-left-headline .dot {
+      color: #c0392b;
+    }
+
+    .panel-left-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85vw;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: #8A8580;
+      margin-top: 1.2vw;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── RIGHT PANEL (cream) ──────────────────────────────────────────────── */
+    .panel-right {
+      flex: 1;
+      background: #f2ede8;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5vw 5vw;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.72vw;
+      font-weight: 500;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: #8A8580;
+      margin-bottom: 0.5vw;
+    }
+
+    .form-input,
+    .form-textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #c8c3be;
+      padding: 0.6vw 0;
+      font-family: 'Inter', sans-serif;
+      font-size: 1vw;
+      font-weight: 400;
+      color: #111;
+      outline: none;
+      transition: border-color 0.2s ease;
+      display: block;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+      border-bottom-color: #111;
+    }
+
+    .form-textarea {
+      resize: none;
+      height: 7vw;
+    }
+
+    .form-group {
+      margin-bottom: 2.5vw;
+    }
+
+    .form-submit {
+      margin-top: 1vw;
+      background: #c0392b;
+      color: #f2ede8;
+      border: none;
+      padding: 1vw 2.5vw;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8vw;
+      font-weight: 500;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .form-submit:hover {
+      background: #a93226;
+    }
+
+    .form-submit .arrow {
+      display: inline-block;
+      margin-left: 0.4em;
+      transition: transform 0.25s ease;
+    }
+
+    .form-submit:hover .arrow {
+      transform: translateX(0.3em);
+    }
+
+    .form-submit[disabled] {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    /* ── SUCCESS / ERROR MESSAGES ─────────────────────────────────────────── */
+    .form-success,
+    .form-error {
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      pointer-events: none;
+    }
+
+    .form-success.is-visible,
+    .form-error.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .form-success {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 5vw;
+      line-height: 0.92;
+      color: #111;
+    }
+
+    .form-success-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85vw;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: #8A8580;
+      margin-top: 1.2vw;
+    }
+
+    .form-success .dot {
+      color: #c0392b;
+    }
+
+    .form-error {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85vw;
+      color: #c0392b;
+      margin-top: 1.5vw;
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    /* ── MOBILE ───────────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      body {
+        overflow: auto;
+      }
+
+      nav {
+        background: #2a2421;
+        padding: 16px 20px;
+      }
+
+      .nav-logo {
+        font-size: 12px;
+      }
+
+      .nav-contact {
+        font-size: 10px;
+        padding: 10px 16px;
+      }
+
+      .split {
+        flex-direction: column;
+      }
+
+      .panel-left {
+        padding: 48px 24px 40px;
+        min-height: 240px;
+      }
+
+      .panel-left-eyebrow {
+        font-size: 11px;
+        margin-bottom: 16px;
+      }
+
+      .panel-left-headline {
+        font-size: 11vw;
+      }
+
+      .panel-left-sub {
+        font-size: 14px;
+        margin-top: 16px;
+      }
+
+      .panel-right {
+        padding: 40px 24px 56px;
+      }
+
+      .form-label {
+        font-size: 11px;
+        margin-bottom: 8px;
+      }
+
+      .form-input,
+      .form-textarea {
+        font-size: 16px;
+        padding: 8px 0;
+      }
+
+      .form-textarea {
+        height: 96px;
+      }
+
+      .form-group {
+        margin-bottom: 32px;
+      }
+
+      .form-submit {
+        font-size: 12px;
+        padding: 14px 32px;
+        margin-top: 8px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">Fireside Law</a>
+    <a href="/" class="nav-contact">Home</a>
+  </nav>
+
+  <div class="split">
+
+    <!-- LEFT: dark panel with headline (particles added in step 4) -->
+    <div class="panel-left">
+      <p class="panel-left-eyebrow">Get in touch</p>
+      <h1 class="panel-left-headline">Start the<br>conversation<span class="dot">.</span></h1>
+      <p class="panel-left-sub">We respond within one business day.</p>
+    </div>
+
+    <!-- RIGHT: contact form -->
+    <div class="panel-right">
+
+      <form id="contact-form" action="https://formspree.io/f/mvzddyyd" method="POST">
+
+        <div class="form-group">
+          <label class="form-label" for="name">Name</label>
+          <input class="form-input" type="text" id="name" name="name" autocomplete="name" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-input" type="email" id="email" name="email" autocomplete="email" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="message">Message</label>
+          <textarea class="form-textarea" id="message" name="message" required></textarea>
+        </div>
+
+        <button class="form-submit" type="submit">Send message<span class="arrow">&rarr;</span></button>
+
+        <p class="form-error" id="form-error">Something went wrong. Please email tian@fireside.law directly.</p>
+
+      </form>
+
+      <div class="form-success is-hidden" id="form-success">
+        Message received<span class="dot">.</span>
+        <p class="form-success-sub">We&rsquo;ll be in touch within one business day.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const form    = document.getElementById('contact-form');
+    const success = document.getElementById('form-success');
+    const error   = document.getElementById('form-error');
+    const submit  = form.querySelector('.form-submit');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      error.classList.remove('is-visible');
+      submit.disabled = true;
+
+      try {
+        const res = await fetch(form.action, {
+          method:  'POST',
+          body:    new FormData(form),
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (res.ok) {
+          form.classList.add('is-hidden');
+          success.classList.remove('is-hidden');
+          // next frame so the transition can run from opacity 0 → 1
+          requestAnimationFrame(() => success.classList.add('is-visible'));
+        } else {
+          throw new Error('submit failed');
+        }
+      } catch (err) {
+        error.classList.add('is-visible');
+        submit.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
