@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendar — Fireside Law</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f2ede8;
+      color: #111;
+      min-height: 100dvh;
+    }
+
+    /* ── NAV (same floating treatment as contact.html) ────────────────────── */
+    nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.11vw 2.78vw;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1.4vw;
+    }
+
+    .nav-logo,
+    .nav-contact,
+    .auth-area > * {
+      pointer-events: auto;
+    }
+
+    .nav-logo {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 0.9vw;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #111;
+      text-decoration: none;
+    }
+
+    .nav-contact {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.83vw;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #111;
+      text-decoration: none;
+      border: 1px solid #c0392b;
+      padding: 0.69vw 1.39vw;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .nav-contact:hover {
+      background: #c0392b;
+      color: #f2ede8;
+    }
+
+    /* ── AUTH AREA ────────────────────────────────────────────────────────── */
+    .auth-area {
+      display: flex;
+      align-items: center;
+      gap: 0.8vw;
+      font-size: 0.78vw;
+      letter-spacing: 0.06em;
+    }
+
+    .auth-signin,
+    .auth-signout {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78vw;
+      font-weight: 500;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      background: transparent;
+      border: none;
+      color: #8A8580;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.15s ease;
+    }
+
+    .auth-signin:hover,
+    .auth-signout:hover {
+      color: #111;
+    }
+
+    .auth-email {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78vw;
+      color: #8A8580;
+    }
+
+    /* ── PAGE CONTAINER ───────────────────────────────────────────────────── */
+    main {
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: 8vw 2.78vw 6vw;
+    }
+
+    /* ── HERO ─────────────────────────────────────────────────────────────── */
+    .hero-eyebrow {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72vw;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8A8580;
+      margin-bottom: 1.4vw;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 5vw;
+      line-height: 0.92;
+      color: #111;
+    }
+
+    .hero-title .dot {
+      color: #c0392b;
+    }
+
+    .hero-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95vw;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: #8A8580;
+      margin-top: 1.4vw;
+      max-width: 32rem;
+    }
+
+    /* ── TIMELINE ─────────────────────────────────────────────────────────── */
+    .timeline {
+      margin-top: 5vw;
+    }
+
+    .month-header {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.4vw;
+      line-height: 0.92;
+      color: #111;
+      padding-bottom: 0.6vw;
+      border-bottom: 1px solid #d8d2cc;
+      margin-top: 4vw;
+      margin-bottom: 1.5vw;
+    }
+
+    .month-header:first-child {
+      margin-top: 0;
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 6.5rem 1fr;
+      gap: 1.4vw;
+      padding: 1.4vw 0;
+      border-bottom: 1px solid #eae6e1;
+    }
+
+    .event-date {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.6vw;
+      line-height: 1;
+      color: #111;
+      padding-top: 0.15vw;
+    }
+
+    .event-day {
+      display: block;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.65vw;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8A8580;
+      margin-top: 0.4vw;
+    }
+
+    .event-time {
+      display: block;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7vw;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: #8A8580;
+      margin-top: 0.4vw;
+    }
+
+    .event-body {
+      min-width: 0;
+    }
+
+    .event-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.15vw;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: #111;
+      line-height: 1.3;
+    }
+
+    .event-title.is-redacted {
+      color: #b3ada6;
+      letter-spacing: 0.3em;
+    }
+
+    .event-description {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9vw;
+      font-weight: 400;
+      color: #6b665f;
+      line-height: 1.45;
+      margin-top: 0.45vw;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .event-location {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78vw;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: #8A8580;
+      margin-top: 0.5vw;
+    }
+
+    /* Past events: muted */
+    .event.is-past .event-date,
+    .event.is-past .event-title {
+      color: #a39d96;
+    }
+    .event.is-past .event-title.is-redacted {
+      color: #c8c2bc;
+    }
+    .event.is-past .event-description,
+    .event.is-past .event-location {
+      color: #b3ada6;
+    }
+
+    /* Today indicator */
+    .event.is-today .event-date::before {
+      content: '';
+      display: inline-block;
+      width: 0.45vw;
+      height: 0.45vw;
+      background: #c0392b;
+      border-radius: 50%;
+      margin-right: 0.4vw;
+      vertical-align: 0.3vw;
+    }
+
+    /* ── STATES ───────────────────────────────────────────────────────────── */
+    .state-message {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95vw;
+      color: #8A8580;
+      padding: 3vw 0;
+      text-align: center;
+    }
+
+    /* Container Google's official sign-in button gets rendered into */
+    .google-button-host {
+      display: inline-block;
+    }
+
+    /* ── MOBILE ───────────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      nav {
+        padding: 16px 20px;
+      }
+
+      .nav-logo {
+        font-size: 12px;
+      }
+
+      .nav-contact {
+        font-size: 10px;
+        padding: 10px 16px;
+      }
+
+      .nav-right {
+        gap: 12px;
+      }
+
+      .auth-area {
+        font-size: 10px;
+        gap: 8px;
+      }
+
+      .auth-signin,
+      .auth-signout,
+      .auth-email {
+        font-size: 10px;
+      }
+
+      main {
+        padding: 96px 24px 56px;
+      }
+
+      .hero-eyebrow {
+        font-size: 11px;
+        margin-bottom: 16px;
+      }
+
+      .hero-title {
+        font-size: 13vw;
+      }
+
+      .hero-sub {
+        font-size: 14px;
+        margin-top: 16px;
+      }
+
+      .timeline {
+        margin-top: 48px;
+      }
+
+      .month-header {
+        font-size: 28px;
+        margin-top: 40px;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+      }
+
+      .event {
+        grid-template-columns: 4.5rem 1fr;
+        gap: 16px;
+        padding: 16px 0;
+      }
+
+      .event-date {
+        font-size: 22px;
+      }
+
+      .event-day {
+        font-size: 9px;
+        margin-top: 4px;
+      }
+
+      .event-time {
+        font-size: 11px;
+        margin-top: 4px;
+      }
+
+      .event-title {
+        font-size: 16px;
+      }
+
+      .event-description {
+        font-size: 13px;
+        margin-top: 4px;
+      }
+
+      .event-location {
+        font-size: 11px;
+        margin-top: 6px;
+      }
+
+      .event.is-today .event-date::before {
+        width: 6px;
+        height: 6px;
+        margin-right: 5px;
+      }
+
+      .state-message {
+        font-size: 14px;
+        padding: 32px 0;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">Fireside Law</a>
+    <div class="nav-right">
+      <div class="auth-area" id="auth-area"></div>
+      <a href="/" class="nav-contact">Home</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <p class="hero-eyebrow">What's on</p>
+    <h1 class="hero-title">Calendar<span class="dot">.</span></h1>
+    <p class="hero-sub">A running log of what we&rsquo;re working on, where we&rsquo;ll be, and what&rsquo;s coming up.</p>
+
+    <section class="timeline" id="timeline">
+      <p class="state-message" id="state">Loading&hellip;</p>
+    </section>
+
+  </main>
+
+  <script>
+    const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const DAY_NAMES   = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+    let clientId = null;
+    let idToken  = sessionStorage.getItem('fs_id_token') || null;
+    let gisReady = false;
+
+    function startOfDay(d) {
+      const x = new Date(d);
+      x.setHours(0, 0, 0, 0);
+      return x;
+    }
+
+    function fmtTime(d) {
+      let h = d.getHours();
+      const m = d.getMinutes();
+      const ampm = h >= 12 ? 'pm' : 'am';
+      h = h % 12 || 12;
+      return m === 0 ? `${h}${ampm}` : `${h}:${String(m).padStart(2, '0')}${ampm}`;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+
+    function parseJWT(token) {
+      try {
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(decodeURIComponent(escape(atob(base64))));
+      } catch (e) {
+        return {};
+      }
+    }
+
+    // ── Data fetching ───────────────────────────────────────────────────────
+    async function fetchPublic() {
+      const r = await fetch('/api/calendar');
+      if (!r.ok) throw new Error('public fetch failed');
+      return r.json();
+    }
+
+    async function fetchPrivate(token) {
+      const r = await fetch('/api/calendar-private', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!r.ok) {
+        const err = new Error('private fetch failed');
+        err.status = r.status;
+        throw err;
+      }
+      return r.json();
+    }
+
+    async function loadCalendar() {
+      const state = document.getElementById('state');
+      state.textContent = 'Loading\u2026';
+
+      let payload;
+      try {
+        if (idToken) {
+          try {
+            payload = await fetchPrivate(idToken);
+          } catch (err) {
+            // Token invalid/expired — clear and fall back to public
+            idToken = null;
+            sessionStorage.removeItem('fs_id_token');
+            payload = await fetchPublic();
+          }
+        } else {
+          payload = await fetchPublic();
+        }
+      } catch (err) {
+        state.textContent = 'Could not load the calendar. Please try again later.';
+        return;
+      }
+
+      if (payload.clientId) clientId = payload.clientId;
+      renderAuthArea();
+      renderEvents(payload.events, payload.redacted);
+    }
+
+    // ── Rendering ──────────────────────────────────────────────────────────
+    function renderEvents(events, redacted) {
+      const timeline = document.getElementById('timeline');
+
+      if (!events || events.length === 0) {
+        timeline.innerHTML = '<p class="state-message">No events yet.</p>';
+        return;
+      }
+
+      const today = startOfDay(new Date());
+      let html = '';
+      let lastMonthKey = '';
+
+      for (const ev of events) {
+        if (!ev.start) continue;
+        const start = new Date(ev.start);
+        const startDay = startOfDay(start);
+
+        const monthKey = `${start.getFullYear()}-${start.getMonth()}`;
+        if (monthKey !== lastMonthKey) {
+          html += `<h2 class="month-header">${MONTH_NAMES[start.getMonth()]} ${start.getFullYear()}</h2>`;
+          lastMonthKey = monthKey;
+        }
+
+        const isPast  = startDay < today;
+        const isToday = startDay.getTime() === today.getTime();
+        const classes = ['event'];
+        if (isPast)  classes.push('is-past');
+        if (isToday) classes.push('is-today');
+
+        const timeLabel = ev.allDay ? 'All day' : fmtTime(start);
+
+        const titleHTML = (ev.title === null || ev.title === undefined)
+          ? '<div class="event-title is-redacted">\u2022\u2022\u2022</div>'
+          : `<div class="event-title">${escapeHtml(ev.title)}</div>`;
+
+        html += `
+          <article class="${classes.join(' ')}">
+            <div class="event-date">
+              ${start.getDate()}
+              <span class="event-day">${DAY_NAMES[start.getDay()]}</span>
+              <span class="event-time">${escapeHtml(timeLabel)}</span>
+            </div>
+            <div class="event-body">
+              ${titleHTML}
+              ${ev.description ? `<div class="event-description">${escapeHtml(ev.description)}</div>` : ''}
+              ${ev.location    ? `<div class="event-location">${escapeHtml(ev.location)}</div>`       : ''}
+            </div>
+          </article>
+        `;
+      }
+
+      timeline.innerHTML = html;
+
+      // Auto-scroll so today (or next upcoming) lands near top of viewport.
+      const todayEl = timeline.querySelector('.is-today') || timeline.querySelector('.event:not(.is-past)');
+      if (todayEl) {
+        const offset = todayEl.getBoundingClientRect().top + window.scrollY - 100;
+        window.scrollTo({ top: offset, behavior: 'instant' });
+      }
+    }
+
+    // ── Auth UI ────────────────────────────────────────────────────────────
+    function renderAuthArea() {
+      const area = document.getElementById('auth-area');
+      if (idToken) {
+        const payload = parseJWT(idToken);
+        const email = payload.email || 'Signed in';
+        area.innerHTML = `
+          <span class="auth-email">${escapeHtml(email)}</span>
+          <button class="auth-signout" id="signout-btn">Sign out</button>
+        `;
+        document.getElementById('signout-btn').addEventListener('click', signOut);
+      } else {
+        area.innerHTML = `<button class="auth-signin" id="signin-btn">Staff sign-in</button>`;
+        document.getElementById('signin-btn').addEventListener('click', startSignIn);
+      }
+    }
+
+    async function loadGIS() {
+      if (gisReady) return;
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://accounts.google.com/gsi/client';
+        s.async = true;
+        s.defer = true;
+        s.onload  = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+      gisReady = true;
+    }
+
+    async function startSignIn() {
+      if (!clientId) {
+        alert('Sign-in is not configured yet.');
+        return;
+      }
+      try {
+        await loadGIS();
+      } catch (err) {
+        alert('Could not load Google Sign-In.');
+        return;
+      }
+
+      // Replace the "Staff sign-in" button with Google's official button.
+      const area = document.getElementById('auth-area');
+      area.innerHTML = '<div class="google-button-host" id="g-button"></div>';
+
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback:  handleSignIn,
+        auto_select: false
+      });
+      google.accounts.id.renderButton(document.getElementById('g-button'), {
+        theme: 'outline',
+        size:  'medium',
+        text:  'signin_with',
+        shape: 'rectangular'
+      });
+      // Optional convenience: also try One Tap.
+      google.accounts.id.prompt();
+    }
+
+    function handleSignIn(response) {
+      idToken = response.credential;
+      sessionStorage.setItem('fs_id_token', idToken);
+      loadCalendar();
+    }
+
+    function signOut() {
+      idToken = null;
+      sessionStorage.removeItem('fs_id_token');
+      if (window.google && google.accounts && google.accounts.id) {
+        google.accounts.id.disableAutoSelect();
+      }
+      loadCalendar();
+    }
+
+    loadCalendar();
+  </script>
+
+</body>
+</html>
