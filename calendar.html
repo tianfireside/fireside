@@ -250,33 +250,53 @@
       color: #111;
     }
 
-    .month-grid-day-dot {
-      width: 0.4vw;
-      height: 0.4vw;
-      background: #111;
-      border-radius: 50%;
-      align-self: flex-start;
+    .month-grid-day-strip {
+      position: relative;
+      width: 100%;
+      height: 0.45vw;
+      min-height: 4px;
+      background: #eae6e1;
+      border-radius: 2px;
+      margin-top: 0.4vw;
+    }
+
+    .month-grid-day-block {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: #c0392b;
+      border-radius: 2px;
+      min-width: 2px;
+    }
+
+    .month-grid-day-block.is-allday {
+      left: 0;
+      width: 100%;
+      background: rgba(192, 57, 43, 0.45);
     }
 
     .month-grid-day.is-other-month .month-grid-day-num {
       color: #c8c2bc;
     }
-    .month-grid-day.is-other-month .month-grid-day-dot {
-      background: #c8c2bc;
+    .month-grid-day.is-other-month .month-grid-day-block {
+      background: #d8d2cc;
+    }
+    .month-grid-day.is-other-month .month-grid-day-block.is-allday {
+      background: rgba(216, 210, 204, 0.7);
     }
 
     .month-grid-day.is-past .month-grid-day-num {
       color: #a39d96;
     }
-    .month-grid-day.is-past .month-grid-day-dot {
-      background: #a39d96;
+    .month-grid-day.is-past .month-grid-day-block {
+      background: #c0b8b0;
+    }
+    .month-grid-day.is-past .month-grid-day-block.is-allday {
+      background: rgba(192, 184, 176, 0.7);
     }
 
     .month-grid-day.is-today .month-grid-day-num {
       color: #c0392b;
-    }
-    .month-grid-day.is-today .month-grid-day-dot {
-      background: #c0392b;
     }
 
     /* ── TIMELINE ─────────────────────────────────────────────────────────── */
@@ -650,6 +670,10 @@
     }
 
     // ── Month grid ─────────────────────────────────────────────────────────
+    const STRIP_START_HOUR = 6;   // 6am
+    const STRIP_END_HOUR   = 22;  // 10pm
+    const STRIP_HOURS      = STRIP_END_HOUR - STRIP_START_HOUR;
+
     function renderMonthGrid() {
       const section = document.getElementById('month-grid-section');
       const grid    = document.getElementById('month-grid');
@@ -663,12 +687,14 @@
 
       title.textContent = `${MONTH_NAMES[gridMonth]} ${gridYear}`;
 
-      // Build a set of date-keys that have at least one event.
+      // Group events by their date-key.
       const eventsByDay = {};
       for (const ev of allEvents) {
         if (!ev.start) continue;
         const d = startOfDay(new Date(ev.start));
-        eventsByDay[`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`] = true;
+        const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        if (!eventsByDay[key]) eventsByDay[key] = [];
+        eventsByDay[key].push(ev);
       }
 
       const today          = startOfDay(new Date());
@@ -702,24 +728,53 @@
     }
 
     function renderGridCell(d, isOtherMonth, today, eventsByDay) {
-      const key       = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-      const dayStart  = startOfDay(d);
-      const isToday   = dayStart.getTime() === today.getTime();
-      const isPast    = dayStart < today;
-      const hasEvents = !!eventsByDay[key];
+      const key      = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const dayStart = startOfDay(d);
+      const isToday  = dayStart.getTime() === today.getTime();
+      const isPast   = dayStart < today;
+      const events   = eventsByDay[key] || [];
 
       const classes = ['month-grid-day'];
       if (isOtherMonth)        classes.push('is-other-month');
       if (isToday)             classes.push('is-today');
       if (isPast && !isToday)  classes.push('is-past');
 
-      const dot = hasEvents ? '<span class="month-grid-day-dot"></span>' : '';
       return `
         <button type="button" class="${classes.join(' ')}" data-date="${key}">
           <span class="month-grid-day-num">${d.getDate()}</span>
-          ${dot}
+          ${renderTimeStrip(events)}
         </button>
       `;
+    }
+
+    function renderTimeStrip(events) {
+      if (!events || events.length === 0) return '';
+
+      let blocks = '';
+      for (const ev of events) {
+        if (!ev.start) continue;
+
+        if (ev.allDay) {
+          blocks += '<div class="month-grid-day-block is-allday"></div>';
+          continue;
+        }
+
+        const start = new Date(ev.start);
+        const end   = ev.end ? new Date(ev.end) : null;
+        const startHr = start.getHours() + start.getMinutes() / 60;
+        const endHr   = end ? end.getHours() + end.getMinutes() / 60 : startHr + 1;
+
+        // Clip to the visible window (e.g., a 5am event becomes flush against the left edge).
+        const visStart = Math.max(STRIP_START_HOUR, startHr);
+        const visEnd   = Math.min(STRIP_END_HOUR,   endHr);
+        if (visStart >= visEnd) continue;
+
+        const leftPct  = ((visStart - STRIP_START_HOUR) / STRIP_HOURS) * 100;
+        const widthPct = ((visEnd   - visStart)         / STRIP_HOURS) * 100;
+        blocks += `<div class="month-grid-day-block" style="left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%"></div>`;
+      }
+
+      return `<div class="month-grid-day-strip">${blocks}</div>`;
     }
 
     function scrollToDate(dateKey) {
