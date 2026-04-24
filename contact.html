@@ -22,21 +22,26 @@
       font-family: 'Inter', sans-serif;
       background: #f2ede8;
       color: #111;
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
       overflow: hidden;
     }
 
-    /* ── NAV ──────────────────────────────────────────────────────────────── */
+    /* ── NAV (floats over the split, transparent) ─────────────────────────── */
     nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 1.11vw 2.78vw;
-      flex-shrink: 0;
-      position: relative;
       z-index: 10;
+      pointer-events: none;
+    }
+
+    .nav-logo,
+    .nav-contact {
+      pointer-events: auto;
     }
 
     .nav-logo {
@@ -55,22 +60,22 @@
       font-weight: 500;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #f2ede8;
+      color: #111;
       text-decoration: none;
-      border: 1px solid rgba(242, 237, 232, 0.4);
+      border: 1px solid #c0392b;
       padding: 0.69vw 1.39vw;
       transition: background 0.2s ease, color 0.2s ease;
     }
 
     .nav-contact:hover {
-      background: rgba(242, 237, 232, 0.12);
+      background: #c0392b;
+      color: #f2ede8;
     }
 
     /* ── SPLIT LAYOUT ─────────────────────────────────────────────────────── */
     .split {
       display: flex;
-      flex: 1;
-      min-height: 0;
+      height: 100dvh;
     }
 
     /* ── LEFT PANEL (dark) ────────────────────────────────────────────────── */
@@ -259,7 +264,6 @@
       }
 
       nav {
-        background: #2a2421;
         padding: 16px 20px;
       }
 
@@ -270,6 +274,7 @@
       .nav-contact {
         font-size: 10px;
         padding: 10px 16px;
+        color: #f2ede8;
       }
 
       .split {
