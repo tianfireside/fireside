@@ -472,8 +472,8 @@
     }
 
     async function loadCalendar() {
-      const state = document.getElementById('state');
-      state.textContent = 'Loading\u2026';
+      const timeline = document.getElementById('timeline');
+      timeline.innerHTML = '<p class="state-message">Loading\u2026</p>';
 
       let payload;
       try {
@@ -492,7 +492,7 @@
           payload = await fetchPublic();
         }
       } catch (err) {
-        state.textContent = 'Could not load the calendar. Please try again later.';
+        timeline.innerHTML = '<p class="state-message">Could not load the calendar. Please try again later.</p>';
         return;
       }
 
