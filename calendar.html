@@ -768,21 +768,26 @@
     }
 
     function renderGridCell(d, isOtherMonth, today, eventsByDay) {
-      const key      = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-      const dayStart = startOfDay(d);
-      const isToday  = dayStart.getTime() === today.getTime();
-      const isPast   = dayStart < today;
-      const events   = eventsByDay[key] || [];
+      const key       = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const dayStart  = startOfDay(d);
+      const isToday   = dayStart.getTime() === today.getTime();
+      const isPast    = dayStart < today;
+      const events    = eventsByDay[key] || [];
+      const isSaturday = d.getDay() === 6;
 
       const classes = ['month-grid-day'];
       if (isOtherMonth)        classes.push('is-other-month');
       if (isToday)             classes.push('is-today');
       if (isPast && !isToday)  classes.push('is-past');
 
+      // Tian doesn't work Saturdays — leave the cell blank instead of showing "Free".
+      const showFree = events.length > 0 || !isSaturday;
+      const cellBody = showFree ? renderTimeStrip(events) : '';
+
       return `
         <button type="button" class="${classes.join(' ')}" data-date="${key}">
           <span class="month-grid-day-num">${d.getDate()}</span>
-          ${renderTimeStrip(events)}
+          ${cellBody}
         </button>
       `;
     }
