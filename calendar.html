@@ -154,6 +154,131 @@
       max-width: 32rem;
     }
 
+    /* ── MONTH GRID ───────────────────────────────────────────────────────── */
+    .month-grid-section {
+      margin-top: 5vw;
+    }
+
+    .month-grid-nav {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1.4vw;
+      padding-bottom: 0.8vw;
+      border-bottom: 1px solid #d8d2cc;
+      margin-bottom: 1.4vw;
+    }
+
+    .month-grid-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.4vw;
+      line-height: 0.92;
+      color: #111;
+      flex: 1;
+    }
+
+    .month-grid-nav-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85vw;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: transparent;
+      border: 1px solid #d8d2cc;
+      color: #111;
+      padding: 0.55vw 1.1vw;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .month-grid-nav-btn:hover {
+      background: #c0392b;
+      color: #f2ede8;
+      border-color: #c0392b;
+    }
+
+    .month-grid-dows {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0;
+      margin-bottom: 0.6vw;
+    }
+
+    .month-grid-dows span {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68vw;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8A8580;
+      padding: 0.4vw 0.6vw;
+    }
+
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: #eae6e1;
+      border: 1px solid #eae6e1;
+    }
+
+    .month-grid-day {
+      background: #f2ede8;
+      aspect-ratio: 1 / 1;
+      padding: 0.5vw 0.6vw;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-family: inherit;
+      transition: background 0.15s ease;
+      position: relative;
+    }
+
+    .month-grid-day:hover {
+      background: #ece6df;
+    }
+
+    .month-grid-day-num {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.3vw;
+      line-height: 1;
+      color: #111;
+    }
+
+    .month-grid-day-dot {
+      width: 0.4vw;
+      height: 0.4vw;
+      background: #111;
+      border-radius: 50%;
+      align-self: flex-start;
+    }
+
+    .month-grid-day.is-other-month .month-grid-day-num {
+      color: #c8c2bc;
+    }
+    .month-grid-day.is-other-month .month-grid-day-dot {
+      background: #c8c2bc;
+    }
+
+    .month-grid-day.is-past .month-grid-day-num {
+      color: #a39d96;
+    }
+    .month-grid-day.is-past .month-grid-day-dot {
+      background: #a39d96;
+    }
+
+    .month-grid-day.is-today .month-grid-day-num {
+      color: #c0392b;
+    }
+    .month-grid-day.is-today .month-grid-day-dot {
+      background: #c0392b;
+    }
+
     /* ── TIMELINE ─────────────────────────────────────────────────────────── */
     .timeline {
       margin-top: 5vw;
@@ -340,6 +465,10 @@
         margin-top: 16px;
       }
 
+      .month-grid-section {
+        display: none;
+      }
+
       .timeline {
         margin-top: 48px;
       }
@@ -416,6 +545,18 @@
     <h1 class="hero-title">Calendar<span class="dot">.</span></h1>
     <p class="hero-sub">A running log of what we&rsquo;re working on, where we&rsquo;ll be, and what&rsquo;s coming up.</p>
 
+    <section class="month-grid-section" id="month-grid-section" hidden>
+      <div class="month-grid-nav">
+        <h2 class="month-grid-title" id="grid-title"></h2>
+        <button type="button" class="month-grid-nav-btn" id="grid-prev">&larr; Prev</button>
+        <button type="button" class="month-grid-nav-btn" id="grid-next">Next &rarr;</button>
+      </div>
+      <div class="month-grid-dows">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+      <div class="month-grid" id="month-grid"></div>
+    </section>
+
     <section class="timeline" id="timeline">
       <p class="state-message" id="state">Loading&hellip;</p>
     </section>
@@ -431,6 +572,11 @@
     let staffEmail  = sessionStorage.getItem('fs_email') || null;
     let gisReady    = false;
     let tokenClient = null;
+
+    // Month grid state — defaults to current month on first render.
+    let gridYear   = null;
+    let gridMonth  = null;
+    let allEvents  = [];
 
     function startOfDay(d) {
       const x = new Date(d);
@@ -497,8 +643,91 @@
       }
 
       if (payload.clientId) clientId = payload.clientId;
+      allEvents = payload.events || [];
       renderAuthArea();
       renderEvents(payload.events, payload.redacted);
+      renderMonthGrid();
+    }
+
+    // ── Month grid ─────────────────────────────────────────────────────────
+    function renderMonthGrid() {
+      const section = document.getElementById('month-grid-section');
+      const grid    = document.getElementById('month-grid');
+      const title   = document.getElementById('grid-title');
+
+      if (gridYear === null) {
+        const now = new Date();
+        gridYear  = now.getFullYear();
+        gridMonth = now.getMonth();
+      }
+
+      title.textContent = `${MONTH_NAMES[gridMonth]} ${gridYear}`;
+
+      // Build a set of date-keys that have at least one event.
+      const eventsByDay = {};
+      for (const ev of allEvents) {
+        if (!ev.start) continue;
+        const d = startOfDay(new Date(ev.start));
+        eventsByDay[`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`] = true;
+      }
+
+      const today          = startOfDay(new Date());
+      const firstOfMonth   = new Date(gridYear, gridMonth, 1);
+      const startWeekday   = firstOfMonth.getDay();
+      const daysInMonth    = new Date(gridYear, gridMonth + 1, 0).getDate();
+
+      let html = '';
+
+      // Trailing days from the previous month, so the first row is full.
+      for (let i = startWeekday; i > 0; i--) {
+        html += renderGridCell(new Date(gridYear, gridMonth, 1 - i), true,  today, eventsByDay);
+      }
+      // Days of the current month.
+      for (let day = 1; day <= daysInMonth; day++) {
+        html += renderGridCell(new Date(gridYear, gridMonth, day),    false, today, eventsByDay);
+      }
+      // Leading days from the next month, to fill the final row.
+      const totalCells = startWeekday + daysInMonth;
+      const remaining  = (7 - (totalCells % 7)) % 7;
+      for (let i = 1; i <= remaining; i++) {
+        html += renderGridCell(new Date(gridYear, gridMonth + 1, i),  true,  today, eventsByDay);
+      }
+
+      grid.innerHTML = html;
+      grid.querySelectorAll('[data-date]').forEach((el) => {
+        el.addEventListener('click', () => scrollToDate(el.dataset.date));
+      });
+
+      section.hidden = false;
+    }
+
+    function renderGridCell(d, isOtherMonth, today, eventsByDay) {
+      const key       = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const dayStart  = startOfDay(d);
+      const isToday   = dayStart.getTime() === today.getTime();
+      const isPast    = dayStart < today;
+      const hasEvents = !!eventsByDay[key];
+
+      const classes = ['month-grid-day'];
+      if (isOtherMonth)        classes.push('is-other-month');
+      if (isToday)             classes.push('is-today');
+      if (isPast && !isToday)  classes.push('is-past');
+
+      const dot = hasEvents ? '<span class="month-grid-day-dot"></span>' : '';
+      return `
+        <button type="button" class="${classes.join(' ')}" data-date="${key}">
+          <span class="month-grid-day-num">${d.getDate()}</span>
+          ${dot}
+        </button>
+      `;
+    }
+
+    function scrollToDate(dateKey) {
+      const target = document.querySelector(`[data-event-date="${dateKey}"]`);
+      if (target) {
+        const offset = target.getBoundingClientRect().top + window.scrollY - 100;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
     }
 
     // ── Rendering ──────────────────────────────────────────────────────────
@@ -540,8 +769,10 @@
           ? '<div class="event-title is-redacted">\u2022\u2022\u2022</div>'
           : `<div class="event-title">${escapeHtml(ev.title)}</div>`;
 
+        const dateKey = `${start.getFullYear()}-${start.getMonth()}-${start.getDate()}`;
+
         html += `
-          <article class="${classes.join(' ')}">
+          <article class="${classes.join(' ')}" data-event-date="${dateKey}">
             <div class="event-date">
               ${start.getDate()}
               <span class="event-day">${DAY_NAMES[start.getDay()]}</span>
@@ -650,6 +881,17 @@
       sessionStorage.removeItem('fs_email');
       loadCalendar();
     }
+
+    document.getElementById('grid-prev').addEventListener('click', () => {
+      gridMonth--;
+      if (gridMonth < 0) { gridMonth = 11; gridYear--; }
+      renderMonthGrid();
+    });
+    document.getElementById('grid-next').addEventListener('click', () => {
+      gridMonth++;
+      if (gridMonth > 11) { gridMonth = 0; gridYear++; }
+      renderMonthGrid();
+    });
 
     loadCalendar();
   </script>
